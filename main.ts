@@ -32,6 +32,19 @@ const outPath = join(outDir, "entry.png");
 
 const mapBytes = readFileSync(mapPath);
 
+// The picture is JPEG bytes under the .png name, which the rules allow,
+// so refuse to ship anything that is not a whole JPEG or PNG: a file
+// whose first bytes are neither magic is a broken build, not a map.
+const isJpeg = mapBytes[0] === 0xff && mapBytes[1] === 0xd8;
+const isPng =
+  mapBytes[0] === 0x89 &&
+  mapBytes[1] === 0x50 &&
+  mapBytes[2] === 0x4e &&
+  mapBytes[3] === 0x47;
+if (!isJpeg && !isPng) {
+  throw new Error("entry.png is not a JPEG or PNG image");
+}
+
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outPath, mapBytes);
 
